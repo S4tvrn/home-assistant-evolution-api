@@ -1,0 +1,6 @@
+{
+  "name": "Evolution API WhatsApp",
+  "content_type": "integration",
+  "homeassistant": "2023.6.0",
+  "render_readme": true
+}

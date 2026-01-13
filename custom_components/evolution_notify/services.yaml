@@ -1,0 +1,12 @@
+send_message:
+  description: Invia messaggio tramite Evolution API.
+  fields:
+    message:
+      description: "Testo del messaggio."
+      example: "Ciao!"
+    target:
+      description: "Numero con prefisso (es. 3912345678)."
+      example: "393331234567"
+    data:
+      description: "Dati: path (locale) o image (URL)."
+      example: "{ 'path': '/config/www/image.jpg' }"
