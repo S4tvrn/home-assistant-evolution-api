@@ -33,13 +33,19 @@ Questa integrazione personalizzata permette di inviare notifiche WhatsApp da **H
 ### 🛠️ Configurazione YAML
 Aggiungi la seguente configurazione al tuo file `configuration.yaml`:
 
+| Parametro | Descrizione |
+|-----------|-------------|
+| `version` | (Opzionale) La versione della tua Evolution API. Usa `1` per versioni 1.x (es. 1.8.2) o `2` per le versioni più recenti. Default: `1`. |
+
+
 ```yaml
 notify:
   - name: whatsapp_evolution
     platform: evolution_notify
-    url: "http://192.168.1.XXX:8080"      # URL della tua istanza Evolution API
-    api_key: "TUA_GLOBAL_API_KEY"        # La tua Global API Key
-    instance: "NOME_ISTANZA"              # Nome dell'istanza creata in Evolution
+    url: "http://192.168.1.XXX:8080"
+    api_key: "TUA_API_KEY"
+    instance: "TUA_ISTANZA"
+    version: 1  # <--- Specifica 1 per Evolution v1.x, 2 per Evolution v2.x
 ```
 
 ### 🚀 Esempi di Utilizzo
@@ -135,3 +141,4 @@ data:
 
 
 **Developed with ❤️ by [S4tvrn](https://github.com/S4tvrn)**
+
