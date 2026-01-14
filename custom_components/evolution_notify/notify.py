@@ -1,6 +1,7 @@
 import logging
 import aiohttp
 import os
+import base64
 import voluptuous as vol
 
 from homeassistant.components.notify import (
@@ -20,12 +21,13 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_URL): cv.string,
     vol.Required(CONF_API_KEY): cv.string,
     vol.Required(CONF_INSTANCE): cv.string,
-    vol.Optional(CONF_VERSION, default=1): vol.Coerce(int), # Default a v1
+    vol.Optional(CONF_VERSION, default=1): vol.Coerce(int),
 })
 
 def get_service(hass, config, discovery_info=None):
-    """Ottieni il servizio Evolution API."""
+    """Passiamo hass al servizio per gestire le chiamate bloccanti."""
     return EvolutionNotificationService(
+        hass,
         config.get(CONF_URL).rstrip("/"),
         config.get(CONF_API_KEY),
         config.get(CONF_INSTANCE),
@@ -33,7 +35,8 @@ def get_service(hass, config, discovery_info=None):
     )
 
 class EvolutionNotificationService(BaseNotificationService):
-    def __init__(self, base_url, api_key, instance, version):
+    def __init__(self, hass, base_url, api_key, instance, version):
+        self.hass = hass
         self._base_url = base_url
         self._api_key = api_key
         self._instance = instance
@@ -61,51 +64,57 @@ class EvolutionNotificationService(BaseNotificationService):
             # --- LOGICA MEDIA ---
             if image_url or file_path:
                 endpoint = f"{self._base_url}/message/sendMedia/{self._instance}"
-                
+                media_payload = None
+
                 if file_path:
-                    # Multipart (uguale per v1 e v2)
-                    headers = {"apikey": self._api_key}
-                    form_data = aiohttp.FormData()
-                    form_data.add_field("number", clean_number)
-                    form_data.add_field("mediatype", "image")
-                    form_data.add_field("caption", message)
-                    with open(file_path, 'rb') as f:
-                        form_data.add_field("media", f.read(), filename=os.path.basename(file_path))
-                    payload_args = {"data": form_data, "headers": headers}
+                    # Verifica file senza bloccare il loop
+                    if not await self.hass.async_add_executor_job(os.path.isfile, file_path):
+                        _LOGGER.error("File locale non trovato: %s", file_path)
+                        return
+                    
+                    # Lettura file in Base64 senza bloccare il loop
+                    def read_base64_file(path):
+                        with open(path, "rb") as f:
+                            return base64.b64encode(f.read()).decode("utf-8")
+
+                    media_payload = await self.hass.async_add_executor_job(read_base64_file, file_path)
                 else:
-                    # JSON Media URL
+                    media_payload = image_url
+
+                # Payload differenziato per versione
+                if self._version == 1:
+                    payload = {
+                        "number": clean_number,
+                        "mediaMessage": {
+                            "mediatype": "image",
+                            "caption": message,
+                            "media": media_payload  # Solo stringa base64 o URL
+                        }
+                    }
+                else: # v2
                     payload = {
                         "number": clean_number,
                         "mediatype": "image",
-                        "media": image_url,
+                        "media": media_payload,
                         "caption": message
                     }
-                    payload_args = {"json": payload, "headers": self._headers}
 
                 try:
-                    async with session.post(endpoint, **payload_args) as response:
+                    async with session.post(endpoint, json=payload, headers=self._headers) as response:
+                        res_text = await response.text()
                         if response.status >= 400:
-                            res_text = await response.text()
                             _LOGGER.error("Errore Evolution Media (v%s): %s", self._version, res_text)
                 except Exception as e:
                     _LOGGER.error("Errore connessione Evolution Media: %s", e)
 
-            # --- LOGICA TESTO (DIFFERENZIATA PER VERSIONE) ---
+            # --- LOGICA TESTO ---
             else:
                 endpoint = f"{self._base_url}/message/sendText/{self._instance}"
-                
                 if self._version == 2:
-                    # Struttura Evolution v2 (Piatta)
-                    payload = {
-                        "number": clean_number,
-                        "text": message,
-                        "delay": 1200
-                    }
+                    payload = {"number": clean_number, "text": message}
                 else:
-                    # Struttura Evolution v1 (Nested textMessage)
                     payload = {
                         "number": clean_number,
-                        "options": {"delay": 1200, "presence": "composing", "linkPreview": True},
                         "textMessage": {"text": message}
                     }
 
