@@ -1,7 +1,7 @@
 {
   "domain": "evolution_notify",
   "name": "Evolution API WhatsApp",
-  "version": "1.1.0", 
+  "version": "1.2.0", 
   "documentation": "https://github.com/S4tvrn/home-assistant-evolution-api",
   "issue_tracker": "https://github.com/S4tvrn/home-assistant-evolution-api/issues",
   "dependencies": [],
@@ -10,3 +10,4 @@
   "iot_class": "local_push",
   "integration_type": "hub"
 }
+
