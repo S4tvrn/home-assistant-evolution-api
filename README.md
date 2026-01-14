@@ -6,6 +6,10 @@
 ![Home Assistant](https://img.shields.io/badge/Home_Assistant-2023.6.0+-blueviolet.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/fluigi363q)
+
+
 [🇮🇹 Italiano](#italiano) | [🇬🇧 English](#english)
 
 ---
@@ -141,4 +145,5 @@ data:
 
 
 **Developed with ❤️ by [S4tvrn](https://github.com/S4tvrn)**
+
 
