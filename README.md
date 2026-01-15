@@ -145,5 +145,6 @@ data:
 
 
 **Developed with ❤️ by [S4tvrn](https://github.com/S4tvrn)**
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/fluigi363q)
 
 
